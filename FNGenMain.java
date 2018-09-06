@@ -1,67 +1,79 @@
 import java.io.*;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class FNGenMain {
-    static String lstFile;
-    static String namesFile;
-    private final static String BASE_PATH = "o://!@//";
-    final static String BLOCK_SPLITTER = "=======================================";
-    private final static String LIST_FILE = "list.txt";
-    private final static String PARSED_FILE = "parsed.txt";
-    final static String FILE_EXTENSION = ".jpg";
-    //boolean addBasePath = true;
-    //static String[] arrayOfStr;
 
+    static private String lstFile;
+    static private String namesFile;
+    static private ArrayList<String> wholeStr = new ArrayList<> ();
+    static private ArrayList<String> fullNames = new ArrayList<> ();
+    final static private String BASE_PATH = "o://!@//";
 
+    //initialization
+    final static private String BLOCK_SPLITTER = "=======================================";
+    final static private String LIST_FILE = "list.txt";
+    final static private String PARSED_FILE = "parsed.txt";
+    final static private String FILE_EXTENSION = ".jpg";
+    final static private char[] WASTE_CHARS = {',', ':', '-', '.', ';', '=', '_'}; //chars to delete in all strings (could make reading of all chars from file)
 
     public static void main (String[] args) {
+
+
+
+
+
+        fullNames.add ("\n-======== ТІЛЬКИ ІМЕНА ========-" + "\n");
+
+        // кодування файлів - в UTF-8
         try {
             System.setOut(new java.io.PrintStream (System.out, true, "UTF-8"));
         } catch (IOException e) {
+            System.out.println ("Something happened with UTF-8 encodeing!");
         }
 
-
-    // set filename to parse
+        // set filename to parse
         if (args.length == 0){
             lstFile = BASE_PATH + LIST_FILE;
         } else lstFile = args[0];
-//        System.out.println ("lstFile is " + lstFile);
 
-    // set filename to write
+        // set filename to write
         if (args.length > 1 && args[1] != null) {
             namesFile = args[1];
         } else namesFile = BASE_PATH + PARSED_FILE;
-//        System.out.println ("Parsed file is " + namesFile);
 
-    // check exist file lstFile
-        Path islstFile = Paths.get(lstFile);
-        Boolean exists = Files.exists(islstFile);
-//        System.out.println("Exist of list file - " + exists);
+        // checking of exist lstFile
+        if (!Files.exists(Paths.get(lstFile))) {
+            System.out.println ("ERROR! There is no file \"" + LIST_FILE + "\" in work directory!");
+            System.out.println ("Use the file name as the first parameter of the program or check it name is \"list.txt\"!");
+            return;
+        }
 
-    // check exist file namesFile
-        Path isnamesFile = Paths.get(namesFile);
-        exists = Files.exists(isnamesFile);
-//        System.out.println("Exist of parsed file - " + exists);
-
-    // read lstFile and build stringBuilder to parse and split
+        // read lstFile and build stringBuilder to parse and split
         try (FileReader fileReader = new FileReader(lstFile);
-            BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
             StringBuilder stringBuilder = new StringBuilder();
             String line = bufferedReader.readLine();
-            StringParser stringParser = new StringParser ();
 
             while (line != null) {
                 // якщо не нал і не порожній, то додаєм в білдер, інакше дописуєм сепаратор
-                if (line !=null) {
-                    if  (!(line.trim().isEmpty())) { // if line is NOT empty
-                        stringBuilder.append(line);
-                        stringBuilder.append(System.lineSeparator());
-                    } else {
-                        //if (!(stringBuilder == null || stringBuilder.toString ().equals (""))) //комент, бо на початок теж даю сеператор. Залишив, може згодиться
-                        {
-                            stringBuilder.append (BLOCK_SPLITTER);
-                            stringBuilder.append (System.lineSeparator ());
+                if  (!(line.trim().isEmpty())) { // if line is NOT empty
+
+                    // видалення зайвих знаків
+                    StringBuilder tmpStr = new StringBuilder (line);
+                    int wasteCharindex;
+                    for (int i = 0; i < tmpStr.length (); i++){
+                        for (char WASTE_CHAR : WASTE_CHARS) {
+                            if (tmpStr.charAt (i) == WASTE_CHAR) tmpStr.setCharAt (i, ' ');
                         }
+                    }
+                    stringBuilder.append(tmpStr);
+                    stringBuilder.append(System.lineSeparator());
+                } else {
+                    {
+                        stringBuilder.append (BLOCK_SPLITTER);
+                        stringBuilder.append (System.lineSeparator ());
                     }
                 }
                 line = bufferedReader.readLine();
@@ -69,27 +81,70 @@ public class FNGenMain {
             stringBuilder.append (BLOCK_SPLITTER); // сепаратор в самий кінець
             stringBuilder.append (System.lineSeparator ());
 
-
-            String wholeStr = new String (stringBuilder.toString ());
-            stringParser.setBlocks (wholeStr);
-            //System.out.println (wholeStr);
+            setBlocks (stringBuilder.toString ());
+            //System.out.println (stringBuilder.toString ());
         } catch (IOException e) {
             System.out.println(e.toString());
         }
 
+    }
+    //PSVM ends
+
+
+    //methods transferred to this class from the external class because of its unnecessary. All of them set to static
+    private static void setBlocks (String s){
+        String[] blocks = s.split (BLOCK_SPLITTER);
+        for (String b: blocks) {
+            setString (b);
+        }
+    }
+
+    private static void setString (String s){
+        StringBuilder blockStrBuilder = new StringBuilder ();
+        String[] lines = s.split ("\\n"); // розділив блок на рядки
+
+        for (String line: lines) {
+            int numsCount = 0; // лічильник кількості номерів в рядку
+            String[] words = line.split ("\\s"); // розділив рядок на слова
+
+            for (String word: words){
+                try {
+                    Integer.parseInt (word); //ignored
+                    numsCount++;
+
+                    if (word.length () < 4)                                 //
+                        for (int i = 0; i < (4 - word.length ()); i++)      // append zeros to non4digit numbers to make them 4digit
+                            blockStrBuilder.append ("0");                   //
+
+                    blockStrBuilder.append(word).append(FILE_EXTENSION).append(System.lineSeparator());
+                    wholeStr.add (blockStrBuilder.toString());
+                    blockStrBuilder.delete (0, blockStrBuilder.length ()); //clean before next iteration
+                } catch (NumberFormatException e) { }
+            }
+
+            if (numsCount == 0) { // if there is no numbers in string (name amd surname found)
+                fullNames.add (line.trim () + "\n");
+                blockStrBuilder.append (line);
+            }
+        }
+        recFile (Arrays.toString (wholeStr.toArray ()));
+    }
+
+
+    private static void recFile (String s) {
+        try {
+            PrintWriter writer = new PrintWriter(namesFile, "UTF-8");
+            wholeStr.forEach (writer::print);
+            fullNames.forEach (writer::print);
+
+            writer.close();
+        } catch (IOException e) {
+            System.out.print(e.toString());
+            System.out.println (" - error writing to file.");
+        }
+    }
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-    } //psvm ends
 }
