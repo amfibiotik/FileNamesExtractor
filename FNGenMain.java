@@ -10,8 +10,12 @@ public class FNGenMain {
 
     static private final ArrayList<String> wholeStr = new ArrayList<> ();
     static private final ArrayList<String> fullNames = new ArrayList<> ();
-    final static private String BASE_PATH = "o://!@//";
+    static private final ArrayList<String> portFileNames = new ArrayList<> ();
+    static private final ArrayList<String> osnFileNames = new ArrayList<> ();
+    static private final ArrayList<String> vertFileNames = new ArrayList<> ();
+
     //initialization
+    final static private String BASE_PATH = "o://!@//";
     final static private String BLOCK_SPLITTER = "=======================================";
     final static private String LIST_FILE = "list.txt";
     final static private String PARSED_FILE = "parsed.txt";
@@ -22,7 +26,10 @@ public class FNGenMain {
 
     public static void main (String[] args) {
 
-        fullNames.add ("\n-======== ТІЛЬКИ ІМЕНА ========-" + "\n");
+        fullNames.add ("\n-======== ТІЛЬКИ ІМЕНА ========-" + "\n\n");
+        portFileNames.add ("\n-======== ПОРТРЕТИ ========-" + "\n\n");
+        vertFileNames.add ("\n-======== ВЕРТИКАЛЬНІ ========-" + "\n\n");
+        osnFileNames.add ("\n-======== ОСНОВНІ ========-" + "\n\n");
 
         // кодування файлів - в UTF-8
         try {
@@ -55,8 +62,7 @@ public class FNGenMain {
             String line = bufferedReader.readLine ();
 
             while (line != null) {
-                // якщо не нал і не порожній, то додаєм в білдер, інакше дописуєм сепаратор
-                if (!(line.trim ().isEmpty ())) { // if line is NOT empty
+                if (!(line.trim ().isEmpty ())) { // // якщо не нал і не порожній, то додаєм в білдер, інакше дописуєм сепаратор
 
                     // видалення зайвих знаків
                     StringBuilder tmpStr = new StringBuilder (line);
@@ -75,51 +81,57 @@ public class FNGenMain {
                 }
                 line = bufferedReader.readLine ();
             }
-            stringBuilder.append (BLOCK_SPLITTER); // сепаратор в самий кінець
-            stringBuilder.append (System.lineSeparator ());
 
-            setBlocks (stringBuilder.toString ());
-            //System.out.println (stringBuilder.toString ());
+            String[] blocks = stringBuilder.toString ().split (BLOCK_SPLITTER); //split whole text to blocks
+
+            for (String b : blocks) setString (b);
+
         } catch (IOException e) {
             System.out.println (e.toString ());
         }
     }
 
 
-    //methods transferred to this class from the external class because of its unnecessary. All of them set to static
-    private static void setBlocks (String s) {
-        String[] blocks = s.split (BLOCK_SPLITTER);
-        for (String b : blocks) {
-            setString (b);
-        }
-    }
+    //method transferred to this class from the external class because of its unnecessary. All of them set to static
 
     private static void setString (String s) {
         StringBuilder blockStrBuilder = new StringBuilder ();
         String[] lines = s.split ("\\n"); // розділив блок на рядки
 
         for (String line : lines) {
+            boolean isPort = false; //признак назви файлу-портрета
+            boolean isOsn = false; //признак назви файлу-основного фото
+            boolean isVert = false; //признак назви файлу-вертикалього фото
             int numsCount = 0; // лічильник кількості номерів в рядку
             String[] words = line.split ("\\s"); // розділив рядок на слова
 
             for (String word : words) {
                 try {
-                    Integer.parseInt (word); //ignored
+                    if (word.equals ("")) continue; //make this for disable empty lines in output file
+                    int parseIntResult = Integer.parseInt (word);
                     numsCount++;
-
                     if (word.length () < 4)                                 //
                         for (int i = 0; i < (4 - word.length ()); i++)      // append zeros to non4digit numbers to make them 4digit
                             blockStrBuilder.append ("0");                   //
-
                     blockStrBuilder.append (word).append (FILE_EXTENSION).append (System.lineSeparator ());
+                    if (isPort && parseIntResult > 0)
+                        portFileNames.add (word + FILE_EXTENSION + System.lineSeparator ());
+                    if (isOsn && parseIntResult > 0) osnFileNames.add (word + FILE_EXTENSION + System.lineSeparator ());
+                    if (isVert && parseIntResult > 0)
+                        vertFileNames.add (word + FILE_EXTENSION + System.lineSeparator ());
                     wholeStr.add (blockStrBuilder.toString ());
                     blockStrBuilder.delete (0, blockStrBuilder.length ()); //clean before next iteration
                 } catch (NumberFormatException e) {
+                    if (word.toLowerCase ().contains ("порт")) isPort = true;
+                    if (word.toLowerCase ().contains ("верт")) isVert = true;
+                    if (word.toLowerCase ().contains ("основ")) isOsn = true;
                 }
             }
 
             if (numsCount == 0) { // if there is no numbers in string (name amd surname found)
-                fullNames.add (line.trim () + "\n");
+                if (!line.trim ().equals ("")) {
+                    fullNames.add (line.trim () + "\n");
+                }
                 blockStrBuilder.append (line);
             }
         }
@@ -129,6 +141,9 @@ public class FNGenMain {
             PrintWriter writer = new PrintWriter (namesFile, "UTF-8");
             wholeStr.forEach (writer::print);
             fullNames.forEach (writer::print);
+            portFileNames.forEach (writer::print);
+            osnFileNames.forEach (writer::print);
+            vertFileNames.forEach (writer::print);
             writer.close ();
         } catch (IOException e) {
             System.out.print (e.toString ());
