@@ -1,14 +1,17 @@
-import java.io.*;
-import java.nio.file.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class FNGenMain {
 
     static private String lstFile;
     static private String namesFile;
-    static private ArrayList<String> wholeStr = new ArrayList<> ();
-    static private ArrayList<String> fullNames = new ArrayList<> ();
+    static private final ArrayList<String> wholeStr = new ArrayList<> ();
+    static private final ArrayList<String> fullNames = new ArrayList<> ();
     final static private String BASE_PATH = "o://!@//";
 
     //initialization
@@ -30,7 +33,7 @@ public class FNGenMain {
         try {
             System.setOut(new java.io.PrintStream (System.out, true, "UTF-8"));
         } catch (IOException e) {
-            System.out.println ("Something happened with UTF-8 encodeing!");
+            System.out.println ("Something happened with UTF-8 encoding!");
         }
 
         // set filename to parse
@@ -62,7 +65,6 @@ public class FNGenMain {
 
                     // видалення зайвих знаків
                     StringBuilder tmpStr = new StringBuilder (line);
-                    int wasteCharindex;
                     for (int i = 0; i < tmpStr.length (); i++){
                         for (char WASTE_CHAR : WASTE_CHARS) {
                             if (tmpStr.charAt (i) == WASTE_CHAR) tmpStr.setCharAt (i, ' ');
@@ -88,7 +90,6 @@ public class FNGenMain {
         }
 
     }
-    //PSVM ends
 
 
     //methods transferred to this class from the external class because of its unnecessary. All of them set to static
@@ -127,24 +128,17 @@ public class FNGenMain {
                 blockStrBuilder.append (line);
             }
         }
-        recFile (Arrays.toString (wholeStr.toArray ()));
-    }
 
-
-    private static void recFile (String s) {
+        // write output file to disk
         try {
-            PrintWriter writer = new PrintWriter(namesFile, "UTF-8");
+            PrintWriter writer = new PrintWriter (namesFile, "UTF-8");
             wholeStr.forEach (writer::print);
             fullNames.forEach (writer::print);
-
-            writer.close();
+            writer.close ();
         } catch (IOException e) {
-            System.out.print(e.toString());
+            System.out.print (e.toString ());
             System.out.println (" - error writing to file.");
         }
+
     }
-
-
-
-
 }
