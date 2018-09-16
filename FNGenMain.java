@@ -5,14 +5,15 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class FNGenMain {
 
     static private final ArrayList<String> wholeStr = new ArrayList<> ();
-    static private final ArrayList<String> fullNames = new ArrayList<> ();
-    static private final ArrayList<String> portFileNames = new ArrayList<> ();
-    static private final ArrayList<String> osnFileNames = new ArrayList<> ();
-    static private final ArrayList<String> vertFileNames = new ArrayList<> ();
+    static private final TreeSet<String> fullNames = new TreeSet<> ();
+    static private final TreeSet<String> portFileNames = new TreeSet<> ();
+    static private final TreeSet<String> osnFileNames = new TreeSet<> ();
+    static private final TreeSet<String> vertFileNames = new TreeSet<> ();
 
     //initialization
     final static private String BASE_PATH = "o://!@//";
