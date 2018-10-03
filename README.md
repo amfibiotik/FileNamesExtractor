@@ -51,4 +51,3 @@ Kirk Hammett
 
 1447.jpg
 2096.jpg
-
